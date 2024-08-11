@@ -8,14 +8,17 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Clear Cache
-        run: sudo rm -rf /home/runner/.cache
+      - name: Clean Working Directory
+        run: rm -rf /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/*
 
       - name: Git Checkout
         uses: actions/checkout@v2
 
       - name: Wait for Filesystem Sync
-        run: sleep 10
+        run: sleep 30
+
+      - name: Adjust File Permissions
+        run: chmod -R 755 /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
 
       - name: Python Setup
         uses: actions/setup-python@v2
@@ -40,11 +43,8 @@ jobs:
           echo "Files in the Directory:"
           ls -la
 
-      - name: Verify Files Before SAM Package
-        run: |
-          pwd
-          ls -la /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
-          cat /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml
+      - name: Check File Availability
+        run: stat /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml
 
       - name: Build Package
         run: sam package --template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml" --output-template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml" --s3-bucket email-cognito-deploy
