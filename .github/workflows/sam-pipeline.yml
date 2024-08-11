@@ -34,3 +34,9 @@ jobs:
 
       - name: Access Template File with Head
         run: head template.yml
+
+      - name: Build Package
+        run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
+
+      - name: Deploy
+        run: sam deploy --tempplate-file ./packaged.yml --parameter-overrides Environment=${{ steps.extract_branch.outputs.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack=${{ steps.extract_branch.outputs.branch }} --region us-east-2
