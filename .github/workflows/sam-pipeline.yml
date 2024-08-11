@@ -35,6 +35,9 @@ jobs:
       - name: Access Template File with Head
         run: head template.yml
 
+      - name: Validate Template File
+        run: sam validate --template-file template.yml
+
       - name: Build Package
         run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
 
