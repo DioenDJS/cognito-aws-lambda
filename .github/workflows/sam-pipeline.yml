@@ -36,15 +36,21 @@ jobs:
           echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
         id: extract_branch
 
-      - name: List Files and Current Directory
+      - name: List Files and Current Directory with Detailed Output
         run: |
           echo "Current Directory:"
           pwd
-          echo "Files in the Directory:"
-          ls -la
+          ls -la | cat -v
 
-      - name: Check File Availability
-        run: stat /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml
+      - name: Change Directory and List Files
+        run: |
+          cd /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
+          ls -la
+          cat template.yml
+
+      - name: Inspect Filesystem
+        run: |
+          find /home/runner/work/cognito-aws-lambda/cognito-aws-lambda -type f
 
       - name: Build Package
         run: sam package --template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml" --output-template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml" --s3-bucket email-cognito-deploy
