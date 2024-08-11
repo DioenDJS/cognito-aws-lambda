@@ -38,12 +38,8 @@ jobs:
       - name: Check SAM CLI Version
         run: sam --version
 
-      - name: Upgrade setuptools and wheel
-        run: |
-          pip install --upgrade setuptools wheel
-
-      - name: Install Cython
-        run: pip install cython
+      - name: Install Latest SAM CLI Version
+        run: pip install --upgrade aws-sam-cli
 
       - name: Install Specific SAM CLI Version
         run: pip install aws-sam-cli==1.20.0
@@ -56,7 +52,10 @@ jobs:
           aws-region: us-east-2
 
       - name: Validate Template File
-        run: sam validate --template-file template.yml
+        run: |
+          echo "Validating template file contents..."
+          cat template.yml
+          sam validate --template-file template.yml
 
       - name: Install Dependencies
         run: pip install -r ./requirements.txt -t dependencies/python
