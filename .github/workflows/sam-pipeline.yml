@@ -8,8 +8,14 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Clear Cache
+        run: sudo rm -rf /home/runner/.cache
+
       - name: Git Checkout
         uses: actions/checkout@v2
+
+      - name: Wait for Filesystem Sync
+        run: sleep 10
 
       - name: Python Setup
         uses: actions/setup-python@v2
@@ -34,16 +40,14 @@ jobs:
           echo "Files in the Directory:"
           ls -la
 
-      - name: Print Environment Variables
-        run: env
-
-      - name: Check SAM CLI Version
-        run: sam --version
-
-      - name: Change Directory and Build Package
+      - name: Verify Files Before SAM Package
         run: |
-          cd /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
-          sam package --template-file template.yml --output-template-file packaged.yml --s3-bucket email-cognito-deploy
+          pwd
+          ls -la /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
+          cat /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml
+
+      - name: Build Package
+        run: sam package --template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml" --output-template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml" --s3-bucket email-cognito-deploy
 
       - name: Deploy
-        run: sam deploy --template-file /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml --parameter-overrides Environment=${{ env.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack-${{ env.branch }} --region us-east-2
+        run: sam deploy --template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml" --parameter-overrides Environment=${{ env.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack-${{ env.branch }} --region us-east-2
