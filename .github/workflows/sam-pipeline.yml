@@ -38,11 +38,16 @@ jobs:
       - name: Check SAM CLI Version
         run: sam --version
 
+      - name: Install Build Dependencies
+        run: sudo apt-get install -y build-essential python3-dev
+
       - name: Install Latest SAM CLI Version
         run: pip install --upgrade aws-sam-cli
 
       - name: Install Specific SAM CLI Version
-        run: pip install aws-sam-cli==1.20.0
+        run: |
+          pip install 'PyYAML<5.3,>=5.2'
+          pip install aws-sam-cli==1.20.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
