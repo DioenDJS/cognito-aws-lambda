@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Git Checkout
         uses: actions/checkout@v2
+        with:
+          path: .
 
       - name: Python Setup
         uses: actions/setup-python@v2
