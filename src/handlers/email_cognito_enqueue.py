@@ -5,6 +5,7 @@ def lambda_handler(event, context):
     # TODO implement
     logger = structlog.get_logger()
     logger.info(event)
+
     logger.info(context)
     return {
         'statusCode': 200,
