@@ -38,8 +38,12 @@ jobs:
       - name: Check SAM CLI Version
         run: sam --version
 
-      - name: Install Latest SAM CLI Version
-        run: pip install --upgrade aws-sam-cli
+      - name: Upgrade setuptools and wheel
+        run: |
+          pip install --upgrade setuptools wheel
+
+      - name: Install Cython
+        run: pip install cython
 
       - name: Install Specific SAM CLI Version
         run: pip install aws-sam-cli==1.20.0
