@@ -4,7 +4,7 @@ Description: email-cognito
 
 Parameters:
   Environment:
-    type: "String"
+    Type: "String"
     Default: "dev"
     AllowedValues: ["dev", "main"]
 
