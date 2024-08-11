@@ -39,16 +39,16 @@ jobs:
         run: sam --version
 
       - name: Install Specific SAM CLI Version
-        run: pip install aws-sam-cli==X.Y.Z
-
-      - name: Validate Template File
-        run: sam validate --template-file template.yml
+        run: pip install aws-sam-cli==1.20.0  # Especifique a versão desejada aqui
 
       - name: Disable SAM CLI Telemetry
         run: export SAM_CLI_TELEMETRY=0
+
+      - name: Validate Template File
+        run: sam validate --template-file template.yml
 
       - name: Build Package
         run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
 
       - name: Deploy
-        run: sam deploy --tempplate-file ./packaged.yml --parameter-overrides Environment=${{ steps.extract_branch.outputs.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack=${{ steps.extract_branch.outputs.branch }} --region us-east-2
+        run: sam deploy --template-file ./packaged.yml --parameter-overrides Environment=${{ steps.extract_branch.outputs.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack=${{ steps.extract_branch.outputs.branch }} --region us-east-2
