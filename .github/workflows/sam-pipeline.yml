@@ -39,7 +39,7 @@ jobs:
         run: sam --version
 
       - name: Install Specific SAM CLI Version
-        run: pip install aws-sam-cli==1.20.0  # Especifique a versão desejada aqui
+        run: pip install aws-sam-cli==1.20.0
 
       - name: Disable SAM CLI Telemetry
         run: export SAM_CLI_TELEMETRY=0
