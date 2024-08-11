@@ -40,8 +40,10 @@ jobs:
       - name: Check SAM CLI Version
         run: sam --version
 
-      - name: Build Package
-        run: sam package --template-file "${{ github.workspace }}/template.yml" --output-template-file "${{ github.workspace }}/packaged.yml" --s3-bucket email-cognito-deploy
+      - name: Change Directory and Build Package
+        run: |
+          cd /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
+          sam package --template-file template.yml --output-template-file packaged.yml --s3-bucket email-cognito-deploy
 
       - name: Deploy
-        run: sam deploy --template-file "${{ github.workspace }}/packaged.yml" --parameter-overrides Environment=${{ env.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack-${{ env.branch }} --region us-east-2
+        run: sam deploy --template-file /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml --parameter-overrides Environment=${{ env.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack-${{ env.branch }} --region us-east-2
