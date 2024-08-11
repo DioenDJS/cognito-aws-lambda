@@ -41,6 +41,9 @@ jobs:
       - name: Install Specific SAM CLI Version
         run: pip install aws-sam-cli==1.20.0
 
+      - name: Disable SAM CLI Telemetry
+        run: export SAM_CLI_TELEMETRY=0
+
       - name: Validate Template File
         run: sam validate --template-file template.yml
 
