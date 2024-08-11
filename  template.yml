@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: email-cognito
+
+Parameters:
+  Environment:
+    type: "String"
+    Default: "dev"
+    AllowedValues: ["dev", "main"]
+
+Mappings:
+  Environments:
+    dev:
+      ApiPrefix: dev
+      ApiKey: "parameters:///dev/email-cognito/api-key"
+      ResourceSufix: dev
+      QueueSufix: Dev
+      ExtractorsEnabled: true
+      LoadersEnabled: true
+      CertificateLayer: "arn:"
+
+Globals:
+  Function:
+    Runtime: python3.8
+    MemorySize: 256
+    Timeout: 600
+    Layers:
+      - !FindInMap [Environments, !Ref Environment, CertificateLayer]
+      - Ref: DepLayer
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        API_KEY: !FindInMap [Environments, !Ref Environment, ApiKey]
+
+Resources:
+  DepLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Join ["-", ["email-cognito-dependencies", !FindInMap [Environments, !Ref Environment, ResourceSufix]]]
+      Description: Dependencies
+      ContentUri: dependencies
+      CompatibleRuntimes:
+        - python3.9
+      LicenseInfo: "MIT"
+
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "userpool-${Environment}"
+      AliasAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "client-${Environment}"
+      UserPoolId: !Ref CognitoUserPool
+      GenerateSecret: false
+
+  CustomAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src
+      Handler: handlers.custom_authorizer.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /custom-authorizer
+            Method: any
+            RestApiId: !Ref EmailCognitoApi
+
+  EmailCognitoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        !Join [ "-", [ !FindInMap [ Environments, !Ref Environment, ApiPrefix ], "email-cognito-api" ] ]
+      StageName: 'v1'
+      EndpointConfiguration:
+        Type: REGIONAL
+        Cors:
+          AllowOrigin: "'*'"
+          AllowMethods: "'POST, GET, OPTIONS, PUT, DELETE'"
+          AllowHeaders: "'*'"
+      Auth:
+        DefaultAuthorizer: CognitoAuth
+        Authorizers:
+          CognitoAuth:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+            IdentitySource: "$request.header.Authorization"
+            AuthorizerResultTtlInSeconds: 300
+            AuthorizerType: REQUEST
+
+  EmailCognitoEnqueue:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src
+      Handler: handlers.email_cognito_enqueue.lambda_handler
+      FunctionName: !Join [ "-", [ "email-cognito-enqueue", !FindInMap [ Environments, !Ref Environment, ResourceSufix ] ] ]
+      Policies:
+        - AdministratorAccess-Amplify
+        - AWSLambda_FullAccess
+        - AmazonRDSFullAccess
+        - AmazonSSMReadOnlyAccess
+        - AmazonSQSFullAccess
+      Events:
+        PostApiEvent:
+          Type: Api
+          Properties:
+            Path: /email-cognito-enqueue
+            Method: post
+            RestApiId: !Ref EmailCognitoApi
+            Auth:
+              Authorizer: CustomAuth
