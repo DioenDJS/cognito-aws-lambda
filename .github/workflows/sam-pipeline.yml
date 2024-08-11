@@ -11,9 +11,6 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v2
 
-      - name: List Files
-        run: ls -la
-
       - name: Python Setup
         uses: actions/setup-python@v2
 
@@ -30,8 +27,13 @@ jobs:
           echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
         id: extract_branch
 
+      - name: Exibir Diretório Atual e Listar Arquivos
+        run: |
+          pwd
+          ls -la
+
       - name: Build Package
-        run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
+        run: sam package --template-file template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
 
       - name: Deploy
         run: sam deploy --template-file ./packaged.yml --parameter-overrides Environment=${{ env.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack-${{ env.branch }} --region us-east-2
