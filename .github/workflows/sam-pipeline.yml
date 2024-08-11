@@ -30,30 +30,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Extract Branch Name
-        shell: bash
-        run: |
-          echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-        id: extract_branch
+      - name: List Files with Detailed View
+        run: ls -la | cat -v
 
-      - name: List Files and Current Directory with Detailed Output
-        run: |
-          echo "Current Directory:"
-          pwd
-          ls -la | cat -v
+      - name: Rename Template File
+        run: mv template.yml template_test.yml
 
-      - name: Change Directory and List Files
+      - name: List and Access Renamed File
         run: |
-          cd /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
           ls -la
-          cat template.yml
+          cat template_test.yml
 
-      - name: Inspect Filesystem
-        run: |
-          find /home/runner/work/cognito-aws-lambda/cognito-aws-lambda -type f
+      - name: Create New Template File
+        run: echo "Test template content" > template.yml
 
-      - name: Build Package
-        run: sam package --template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/template.yml" --output-template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml" --s3-bucket email-cognito-deploy
-
-      - name: Deploy
-        run: sam deploy --template-file "/home/runner/work/cognito-aws-lambda/cognito-aws-lambda/packaged.yml" --parameter-overrides Environment=${{ env.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack-${{ env.branch }} --region us-east-2
+      - name: Access Newly Created Template File
+        run: cat template.yml
