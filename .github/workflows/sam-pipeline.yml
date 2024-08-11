@@ -41,6 +41,9 @@ jobs:
       - name: Install Specific SAM CLI Version
         run: pip install aws-sam-cli==1.20.0
 
+      - name: Disable SAM CLI Telemetry
+        run: export SAM_CLI_TELEMETRY=0
+
       - name: Build Package
         run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
 
