@@ -12,12 +12,10 @@ Mappings:
   Environments:
     dev:
       ApiPrefix: dev
-      ApiKey: "parameters:///dev/email-cognito/api-key"
       ResourceSufix: dev
       QueueSufix: Dev
       ExtractorsEnabled: true
       LoadersEnabled: true
-      CertificateLayer: "arn:"
 
 Globals:
   Function:
@@ -30,7 +28,6 @@ Globals:
     Environment:
       Variables:
         ENVIRONMENT: !Ref Environment
-        API_KEY: !FindInMap [Environments, !Ref Environment, ApiKey]
 
 Resources:
   DepLayer:
