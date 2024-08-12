@@ -8,46 +8,11 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Clean Working Directory
-        run: rm -rf /home/runner/work/cognito-aws-lambda/cognito-aws-lambda/*
-
       - name: Git Checkout
         uses: actions/checkout@v2
 
-      - name: Wait for Filesystem Sync
-        run: sleep 30
-
-      - name: Adjust File Permissions
-        run: chmod -R 755 /home/runner/work/cognito-aws-lambda/cognito-aws-lambda
-
-      - name: Create and Access New Template File
-        run: |
-          echo "Test template content" > template_new.yml
-          ls -la
-          cat template_new.yml
-
-      - name: Overwrite and Access Template File
-        run: |
-          echo "Overwritten template content" > template.yml
-          ls -la
-          cat template.yml
-
-      - name: Access Template File with Head
-        run: head template.yml
-
-      - name: Check SAM CLI Version
-        run: sam --version
-
-      - name: Install Build Dependencies
-        run: sudo apt-get install -y build-essential python3-dev
-
-      - name: Install Latest SAM CLI Version
-        run: pip install --upgrade aws-sam-cli
-
-      - name: Install Specific SAM CLI Version
-        run: |
-          pip install 'PyYAML<5.3,>=5.2'
-          pip install aws-sam-cli==1.20.0
+      - name: Python Setup
+        uses: actions/setup-python@v2
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -56,17 +21,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Validate Template File
-        run: |
-          echo "Validating template file contents..."
-          cat template.yml
-          sam validate --template-file template.yml
+      - name: Extract Branch Name
+        shell: bash
+        run: echo "##[ set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
 
-      - name: Install Dependencies
-        run: pip install -r ./requirements.txt -t dependencies/python
+      - name: Build Package
+        run: $(dirname $(readlink $(which sam)))/pip install --force-reinstall "cryptography==38.0.4"
 
       - name: Build Package
         run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
 
       - name: Deploy
-        run: sam deploy --template-file ./packaged.yml --parameter-overrides Environment=${{ steps.extract_branch.outputs.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack=${{ steps.extract_branch.outputs.branch }} --region us-east-2
+        run: sam deploy --tempplate-file ./packaged.yml --parameter-overrides Environment=${{ steps.extract_branch.outputs.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack=${{ steps.extract_branch.outputs.branch }} --region us-east-2
