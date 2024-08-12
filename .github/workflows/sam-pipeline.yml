@@ -21,10 +21,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Extract Branch Name
-        shell: bash
-        run: echo "##[ set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install AWS SAM CLI
+        run: |
+          curl -L "https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip" -o sam.zip
+          unzip sam.zip -d sam
+          sudo mv sam/* /usr/local/bin/
+          sam --version
 
       - name: Build Package
         run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
