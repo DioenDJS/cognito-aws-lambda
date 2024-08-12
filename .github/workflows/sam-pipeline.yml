@@ -24,10 +24,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Extract Branch Name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+#      - name: Extract Branch Name
+#        shell: bash
+#        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+#        id: extract_branch
 
       - name: Disable SAM CLI Telemetry
         run: export SAM_CLI_TELEMETRY=0
@@ -36,4 +36,4 @@ jobs:
         run: sam package --template-file ./template.yml --output-template-file ./packaged.yml --s3-bucket email-cognito-deploy
 
       - name: Deploy
-        run: sam deploy --template-file ./packaged.yml --parameter-overrides Environment=${{ steps.extract_branch.outputs.branch }} --capabilities CAPABILITY_IAM --stack-name email-cognito-stack=${{ steps.extract_branch.outputs.branch }} --region us-east-2
+        run: sam deploy --template-file ./packaged.yml  --capabilities CAPABILITY_IAM --stack-name email-cognito-stack --region us-east-2
